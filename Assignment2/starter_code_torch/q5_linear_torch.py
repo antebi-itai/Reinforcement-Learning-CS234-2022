@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from torch.tensor import Tensor
+from torch import Tensor
 from utils.test_env import EnvTest
 from core.deep_q_learning_torch import DQN
 from q4_schedule import LinearExploration, LinearSchedule
@@ -34,7 +34,10 @@ class Linear(DQN):
 
         ##############################################################
         ################ YOUR CODE HERE (2 lines) ##################
-
+        self.q_network = nn.Linear(in_features=img_height * img_width * n_channels * self.config.state_history,
+                                   out_features=num_actions)
+        self.target_network = nn.Linear(in_features=img_height * img_width * n_channels * self.config.state_history,
+                                        out_features=num_actions)
         ##############################################################
         ######################## END YOUR CODE #######################
 
@@ -60,7 +63,7 @@ class Linear(DQN):
 
         ##############################################################
         ################ YOUR CODE HERE - 3-5 lines ##################
-
+        out = getattr(self, network)(torch.flatten(state, start_dim=1))
         ##############################################################
         ######################## END YOUR CODE #######################
 
@@ -84,7 +87,7 @@ class Linear(DQN):
 
         ##############################################################
         ################### YOUR CODE HERE - 1-2 lines ###############
-
+        self.target_network.load_state_dict(self.q_network.state_dict())
         ##############################################################
         ######################## END YOUR CODE #######################
 
@@ -123,7 +126,10 @@ class Linear(DQN):
 
         ##############################################################
         ##################### YOUR CODE HERE - 3-5 lines #############
-
+        Q_samp = torch.where(done_mask, rewards, rewards + gamma * target_q_values.max(dim=1).values)
+        Q = (q_values * torch.nn.functional.one_hot(actions.to(torch.int64), num_classes=num_actions)).sum(dim=1)
+        loss = torch.nn.functional.mse_loss(Q_samp, Q)
+        return loss
         ##############################################################
         ######################## END YOUR CODE #######################
 
@@ -139,7 +145,7 @@ class Linear(DQN):
         """
         ##############################################################
         #################### YOUR CODE HERE - 1 line #############
-
+        self.optimizer = torch.optim.Adam(params=self.q_network.parameters())
         ##############################################################
         ######################## END YOUR CODE #######################
 

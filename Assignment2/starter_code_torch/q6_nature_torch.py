@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import copy
 
 from utils.general import get_logger
 from utils.test_env import EnvTest
@@ -46,6 +47,19 @@ class NatureQN(Linear):
 
         ##############################################################
         ################ YOUR CODE HERE - 25-30 lines lines ################
+        self.q_network = nn.Sequential(
+            nn.Conv2d(in_channels=n_channels*self.config.state_history, out_channels=32, kernel_size=(8, 8), stride=(4, 4), padding=((4 - 1) * img_height - 4 + 8) // 2),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=(4, 4), stride=(2, 2), padding=((2 - 1) * img_height - 2 + 4) // 2),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=(3, 3), stride=(1, 1), padding=((1 - 1) * img_height - 1 + 3) // 2),
+            nn.ReLU(),
+            nn.Flatten(),
+            nn.Linear(in_features=img_height*img_width*64, out_features=512),
+            nn.ReLU(),
+            nn.Linear(in_features=512, out_features=num_actions)
+        )
+        self.target_network = copy.deepcopy(self.q_network)
 
         ##############################################################
         ######################## END YOUR CODE #######################
@@ -71,7 +85,7 @@ class NatureQN(Linear):
 
         ##############################################################
         ################ YOUR CODE HERE - 4-5 lines lines ################
-
+        out = getattr(self, network)(state.permute(0, 3, 1, 2))
         ##############################################################
         ######################## END YOUR CODE #######################
         return out

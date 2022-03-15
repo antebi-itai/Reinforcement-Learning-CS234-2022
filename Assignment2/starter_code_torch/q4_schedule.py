@@ -33,8 +33,7 @@ class LinearSchedule(object):
         """
         ##############################################################
         ################ YOUR CODE HERE - 3-4 lines ##################
-		pass
-
+        self.epsilon = self.eps_begin + (t / self.nsteps) * (self.eps_end - self.eps_begin) if t <= self.nsteps else self.eps_end
         ##############################################################
         ######################## END YOUR CODE ############## ########
 
@@ -77,7 +76,9 @@ class LinearExploration(LinearSchedule):
         """
         ##############################################################
         ################ YOUR CODE HERE - 4-5 lines ##################
-		pass
+        if np.random.rand() < self.epsilon:
+            return self.env.action_space.sample()
+        return best_action
         ##############################################################
         ######################## END YOUR CODE #######################
 
